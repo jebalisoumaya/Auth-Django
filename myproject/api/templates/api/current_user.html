@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utilisateur Connecté</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .user-info {
+            background-color: #e8f5e8;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+        .csrf-info {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .test-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Authentification par Session & CSRF</h1>
+        
+        <div class="user-info">
+            <h2>👤 Utilisateur Connecté</h2>
+            <p><strong>Nom d'utilisateur:</strong> {{ username }}</p>
+            <p><strong>Email:</strong> {{ email|default:"Non défini" }}</p>
+            <p><strong>Statut:</strong> Authentifié ✅</p>
+        </div>
+
+        <div class="csrf-info">
+            <h3>🔒 Information CSRF</h3>
+            <p>Le jeton CSRF est automatiquement géré par Django dans cette vue.</p>
+            <p><strong>Cookie de session:</strong> Présent et valide ✅</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Tests d'authentification</h3>
+            <p>Cette page démontre :</p>
+            <ul>
+                <li>✅ Authentification par session Django</li>
+                <li>✅ Protection CSRF automatique</li>
+                <li>✅ Gestion des cookies de session</li>
+                <li>✅ Accès sécurisé aux informations utilisateur</li>
+            </ul>
+            
+            <button class="button" onclick="testAjaxCall()">Tester Appel AJAX</button>
+            <a href="{% url 'api:logout' %}" class="button logout-btn">Se Déconnecter</a>
+        </div>
+
+        <div id="ajax-result" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        // Fonction pour obtenir le token CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Test d'appel AJAX avec CSRF
+        function testAjaxCall() {
+            const csrftoken = getCookie('csrftoken');
+            
+            fetch(window.location.href, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('ajax-result').innerHTML = `
+                    <div style="background-color: #d4edda; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
+                        <h4>✅ Résultat de l'appel AJAX :</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                document.getElementById('ajax-result').innerHTML = `
+                    <div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; border-left: 4px solid #dc3545;">
+                        <h4>❌ Erreur :</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
